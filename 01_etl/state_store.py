@@ -22,7 +22,7 @@ class JsonFileStorage(BaseStorage):
         self.file_path = file_path
 
     def save_state(self, state: dict) -> None:
-        print(f'we are trying to save state: {state}')
+        logging.error(f'we are trying to save state: {state}')
         with open(self.file_path, 'w') as stor_file:
             json.dump(fp=stor_file, obj=state)
 
@@ -56,9 +56,3 @@ class State:
             return '1970-01-01'
 
 
-if __name__ == '__main__':
-    stor = JsonFileStorage(file_path='json_storage.json')
-    stat = State(stor)
-    logging.info(stat.get_state(key='modified'))
-    stat.set_state(key='modified', value='today')
-    logging.info(stat.get_state(key='modified'))

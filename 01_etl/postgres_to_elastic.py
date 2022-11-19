@@ -22,14 +22,7 @@ class PostgresExtractor:
     """Забираем данные из таблиц film_work, genre, person"""
 
     def __init__(self) -> None:
-        self.psql_dsn = {
-            'dbname': os.environ.get('DB_NAME'),
-            'user': os.environ.get('DB_USER'),
-            'password': os.environ.get('DB_PASSWORD'),
-            'host': os.environ.get('DB_HOST', 'movies-postgresql'),
-            'port': os.environ.get('DB_PORT', 5432),
-        }
-
+        self.psql_dsn = settings.DSL
 
     @backoff()
     def connect(self) -> bool:

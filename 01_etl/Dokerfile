@@ -1,0 +1,22 @@
+# syntax=docker/dockerfile:1
+FROM python:3.10
+
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /code
+
+RUN groupadd -r web
+RUN useradd -d /code -r -g web web
+
+COPY requirements.txt /code/
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+COPY . /code/
+RUN chown web:web -R /code
+
+USER web
+
+ENTRYPOINT ["python", "postgres_to_elastic.py"]

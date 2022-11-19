@@ -1,0 +1,92 @@
+version: "3.9"
+
+services:
+  #================================
+  #             NGINX
+  #================================
+  nginx:
+    image: nginx:1.23.1-alpine
+    container_name: movies-nginx
+    depends_on:
+      - movies-django
+    networks:
+      - movies_network
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    volumes:
+      - ./nginx_configs:/etc/nginx/:ro
+      - ./movies_admin/static:/static
+      - ./movies_admin/media:/media
+
+  #================================
+  #      POSTGRESQL DATABASE
+  #================================
+  postgresql:
+    image: postgres:14.4-alpine
+    container_name: movies-postgresql
+    env_file:
+      - ./movies_admin/config/.env
+    networks:
+      - movies_network
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    volumes:
+      - movies_postgresql_volume:/var/lib/postgresql/data
+
+  #================================
+  #       WEB APPLICATION
+  #================================
+  django:
+    build: ./movies_admin
+    container_name: movies-django
+    depends_on:
+      - postgresql
+    networks:
+      - movies_network
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./movies_admin:/code
+
+  #================================
+  #       ELASTICSEARCH
+  #================================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.5
+    container_name: movies-elasticsearch
+    environment:
+      - xpack.security.enabled=false
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+    networks:
+      - movies_network
+    ports:
+      - 9200:9200
+    restart: unless-stopped
+    volumes:
+      - movies_elasticsearch_volume:/usr/share/elasticsearch/data
+
+  es_intergration:
+    build: ./es_integration
+    container_name: movies-es-integration
+    depends_on:
+      - postgresql
+      - elasticsearch
+    networks:
+      - movies_network
+    restart: unless-stopped
+
+#================================
+#         NETWORK
+#================================
+networks:
+  movies_network:
+
+#================================
+#         VOLUMES
+#================================
+volumes:
+  movies_postgresql_volume:
+  movies_elasticsearch_volume:
